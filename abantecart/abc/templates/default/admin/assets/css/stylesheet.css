@@ -3433,3 +3433,25 @@ img.extension-summary-icon{
 .primary_content_actions .btn-group{
     margin-bottom: 3px;
 }
+
+td.details-control {
+    background: url('/templates/default/admin/assets/images/details_open.png') no-repeat center center;
+    cursor: pointer;
+}
+tr.details td.details-control {
+    background: url('/templates/default/admin/assets/images/details_close.png') no-repeat center center;
+}
+
+.dataTable tbody tr td:last-child {
+    display: flex;
+    justify-content: space-between;
+}
+.dataTable tbody tr.odd {
+    background: #f7f7f7;
+}
+.dataTable tbody tr {
+    border-bottom: solid 1px #E5E5E5;
+}
+.dataTable tbody tr:hover {
+    background: #E5E5E5;
+}

@@ -26,6 +26,8 @@ final class ARequest
 {
     public $get = [];
     public $post = [];
+    public $put = [];
+    public $delete = [];
     public $cookie = [];
     public $files = [];
     public $server = [];
@@ -50,6 +52,30 @@ final class ARequest
         $this->cookie = $_COOKIE;
         $this->files = $_FILES;
         $this->server = $_SERVER;
+
+        if($_SERVER['REQUEST_METHOD'] == 'PUT') {
+            $putdata = file_get_contents('php://input');
+            $exploded = explode('&', $putdata);
+
+            foreach($exploded as $pair) {
+                $item = explode('=', $pair);
+                if(count($item) == 2) {
+                    $this->put[urldecode($item[0])] = urldecode($item[1]);
+                }
+            }
+        }
+
+        if($_SERVER['REQUEST_METHOD'] == 'DELETE') {
+            $putdata = file_get_contents('php://input');
+            $exploded = explode('&', $putdata);
+
+            foreach($exploded as $pair) {
+                $item = explode('=', $pair);
+                if(count($item) == 2) {
+                    $this->delete[urldecode($item[0])] = urldecode($item[1]);
+                }
+            }
+        }
 
         //check if there is any encrypted data
         if (isset($this->get['__e']) && $this->get['__e']) {
@@ -290,5 +316,21 @@ final class ARequest
         setcookie($name, null, -1, $path);
         unset($this->cookie[$name], $_COOKIE[$name]);
         return true;
+    }
+
+    /**
+     * @return bool
+     */
+    public function is_PUT()
+    {
+        return ($this->server['REQUEST_METHOD'] == 'PUT' ? true : false);
+    }
+
+    /**
+     * @return bool
+     */
+    public function is_DELETE()
+    {
+        return ($this->server['REQUEST_METHOD'] == 'DELETE' ? true : false);
     }
 }

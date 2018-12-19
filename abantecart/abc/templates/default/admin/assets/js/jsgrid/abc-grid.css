@@ -1,0 +1,24 @@
+#grid_action {
+	position: fixed;
+	top: 140px;
+	right: 0;
+	-webkit-transition-duration: 0.3s;
+	-moz-transition-duration: 0.3s;
+	-o-transition-duration: 0.3s;
+	transition-duration: 0.3s;
+}
+#grid_action_inner {
+	position: fixed;
+	top: 140px;
+	right: -150px;
+	-webkit-transition-duration: 0.3s;
+	-moz-transition-duration: 0.3s;
+	-o-transition-duration: 0.3s;
+	transition-duration: 0.3s;
+}
+#grid_action:hover {
+	right: 250px;
+}
+#grid_action:hover #grid_action_inner {
+	right: 0;
+}

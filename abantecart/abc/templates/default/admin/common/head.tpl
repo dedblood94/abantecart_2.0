@@ -59,11 +59,33 @@ use abc\core\ABC; ?>
 
 </script>
 
+<?php if ($this->document->renderJsVars()) { ?>
+<script>
+	<?php echo $this->document->renderJsVars(); ?>
+</script>
+<?php } ?>
+
 <script type="text/javascript" src="vendor/components/jquery-cookie/js.cookie.min.js"></script>
 <script type="text/javascript" src="vendor/components/jqueryui/jquery-ui.min.js"></script>
 <script type="text/javascript" src="vendor/components/popper/popper.min.js"></script>
 <script type="text/javascript" src="vendor/components/bootstrap/js/bootstrap.min.js"></script>
 <script defer type="text/javascript" src="vendor/tinymce/tinymce/tinymce.min.js"></script>
+
+
+
+<link rel="stylesheet" type="text/css" href="https://cdn.datatables.net/1.10.19/css/jquery.dataTables.css">
+<link rel="stylesheet" type="text/css" href="https://cdn.datatables.net/buttons/1.5.2/css/buttons.dataTables.min.css">
+<link rel="stylesheet" type="text/css" href="https://cdn.datatables.net/select/1.2.7/css/select.dataTables.min.css">
+<link rel="stylesheet" type="text/css" href="https://cdn.datatables.net/rowreorder/1.2.5/css/rowReorder.dataTables.min.css">
+
+
+<link rel="stylesheet" type="text/css" href="/templates/default/admin/assets/css/jquery.treetable.css">
+
+
+
+
+
+
 
 
 <?php foreach ($scripts as $script) { ?>

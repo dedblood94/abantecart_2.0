@@ -26,10 +26,13 @@ use abc\core\engine\AForm;
 use abc\core\helper\AHelperUtils;
 use abc\core\lib\AContentManager;
 use abc\core\lib\ALayoutManager;
+use Laracasts\Utilities\AAppViewBinder;
+use Laracasts\Utilities\JavaScript\Transformers\Transformer;
 
 if ( ! class_exists('abc\core\ABC') || ! \abc\core\ABC::env('IS_ADMIN')) {
     header('Location: static_pages/?forbidden='.basename(__FILE__));
 }
+
 
 class ControllerPagesDesignContent extends AController
 {
@@ -74,6 +77,11 @@ class ControllerPagesDesignContent extends AController
             'url'              => $this->html->getSecureURL('listing_grid/content'),
             'editurl'          => $this->html->getSecureURL('listing_grid/content/update'),
             'update_field'     => $this->html->getSecureURL('listing_grid/content/update_field'),
+            'control' => true,
+            'filtering' => true,
+            'sorting' => true,
+            'editing' => true,
+            'controls' => ['edit', 'delete', 'actions'],
             'sortname'         => 'sort_order',
             'sortorder'        => 'asc',
             'drag_sort_column' => 'sort_order',
@@ -92,36 +100,49 @@ class ControllerPagesDesignContent extends AController
             ),
         );
 
-        $grid_settings['colNames'] = array(
-            $this->language->get('column_title'),
-            $this->language->get('column_parent'),
-            $this->language->get('column_status'),
-            $this->language->get('column_sort_order'),
-        );
         $grid_settings['colModel'] = array(
             array(
+                'name'  => 'id',
+                'type'  => 'number',
+                'width' => 10,
+                'align' => 'left',
+                'visible' => false,
+            ),
+            array(
                 'name'  => 'title',
+                'title' => $this->language->get('column_title'),
+                'type'  => 'text',
                 'index' => 'id.title',
                 'width' => 250,
                 'align' => 'left',
             ),
             array(
                 'name'   => 'parent_name',
+                'title'  => $this->language->get('column_parent'),
                 'index'  => 'parent_name',
+                'type'  => 'text',
+                'filtering' => false,
+                'inserting' => false,
+                'editing' => false,
                 'width'  => 100,
                 'align'  => 'center',
                 'search' => false,
             ),
             array(
                 'name'   => 'status',
+                'title' => $this->language->get('column_status'),
                 'index'  => 'status',
+                'type'  => 'checkbox',
+                'sorting' => false,
                 'width'  => 100,
                 'align'  => 'center',
                 'search' => false,
             ),
             array(
-                'name'   => 'sort_order',
-                'index'  => 'sort_order',
+                'name'   => 'sort',
+                'title'  => $this->language->get('column_sort_order'),
+                'index'  => 'sort',
+                'type'  => 'number',
                 'width'  => 100,
                 'align'  => 'center',
                 'search' => false,
@@ -131,12 +152,23 @@ class ControllerPagesDesignContent extends AController
             $grid_settings['expand_column'] = 'title';
             $grid_settings['multiaction_class'] = 'hidden';
         }
-        $grid = $this->dispatch('common/listing_grid', array($grid_settings));
+
+        if (isset($this->request->get['parent_id'])) {
+            $grid_settings['parent_id'] = (int)$this->request->get['parent_id'];
+        }
+
+        $grid = $this->dispatch('common/listing_grid_jsgrid', array($grid_settings));
         $this->view->assign('listing_grid', $grid->dispatchGetOutput());
 
         $this->document->setTitle($this->language->get('heading_title'));
         $this->view->assign('insert', $this->html->getSecureURL('design/content/insert'));
         $this->view->assign('help_url', $this->gen_help_url('content_listing'));
+
+        $this->view->assign('grid_settings', $grid_settings);
+
+        $javascript = new Transformer($this->document, 'abc');
+        $javascript->put(['grid_settings' => $grid_settings]);
+
 
         $this->processTemplate('pages/design/content_list.tpl');
         //update controller data
