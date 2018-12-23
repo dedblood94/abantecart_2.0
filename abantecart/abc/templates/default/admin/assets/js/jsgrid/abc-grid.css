@@ -1,24 +1,31 @@
+.grid-col-left {
+	width: 75%;
+}
+.grid-col-right {
+	width: 25%;
+	min-width: 25%;
+}
+.grid-container-main {
+	display: flex;
+}
 #grid_action {
-	position: fixed;
-	top: 140px;
-	right: 0;
-	-webkit-transition-duration: 0.3s;
-	-moz-transition-duration: 0.3s;
-	-o-transition-duration: 0.3s;
-	transition-duration: 0.3s;
+	left:0 !important;
+}
+
+.tab-content {
+	padding: 10px;
+}
+#grid_action a.btn {
+	color: #fff !important;
+}
+#grid_action .nav-tabs {
+	background: #eee;
+}
+.customGridButton {
+	width: 16px;
+	height: 16px;
+	padding: 1px 7px 2px;
 }
 #grid_action_inner {
-	position: fixed;
-	top: 140px;
-	right: -150px;
-	-webkit-transition-duration: 0.3s;
-	-moz-transition-duration: 0.3s;
-	-o-transition-duration: 0.3s;
-	transition-duration: 0.3s;
-}
-#grid_action:hover {
-	right: 250px;
-}
-#grid_action:hover #grid_action_inner {
-	right: 0;
+	height: calc(100% - 35px);
 }

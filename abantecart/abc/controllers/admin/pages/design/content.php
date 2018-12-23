@@ -75,6 +75,7 @@ class ControllerPagesDesignContent extends AController
         $grid_settings = array(
             'table_id'         => 'content_grid',
             'url'              => $this->html->getSecureURL('listing_grid/content'),
+            'tree_url'              => $this->html->getSecureURL('listing_grid/content/getTree'),
             'editurl'          => $this->html->getSecureURL('listing_grid/content/update'),
             'update_field'     => $this->html->getSecureURL('listing_grid/content/update_field'),
             'control' => true,
@@ -139,9 +140,9 @@ class ControllerPagesDesignContent extends AController
                 'search' => false,
             ),
             array(
-                'name'   => 'sort',
+                'name'   => 'sort_order',
                 'title'  => $this->language->get('column_sort_order'),
-                'index'  => 'sort',
+                'index'  => 'sort_order',
                 'type'  => 'number',
                 'width'  => 100,
                 'align'  => 'center',

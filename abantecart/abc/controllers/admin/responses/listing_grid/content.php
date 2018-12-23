@@ -40,7 +40,40 @@ class ControllerResponsesListingGridContent extends GridController
      */
     private $acm;
 
-    public function get()
+    public function getTree()
+    {
+        $this->extensions->hk_InitData($this, __FUNCTION__);
+
+        $this->loadLanguage('design/content');
+        $this->acm = new AContentManager();
+        $results = $this->acm->getContents([]);
+
+        $this->data['tree'][] = [
+            'id' => 0,
+            'text' => 'Top level',
+            'parent' => "#",
+            'selected' => true,
+        ];
+
+        foreach ($results as $result) {
+                foreach ($result['parent_content_id'] as $parent_id=>$value) {
+                    $parent_val = $parent_id;
+                    $this->data['tree'][] = [
+                        'id' => $result['content_id'],
+                        'text' => $result['title'],
+                        'parent' => $parent_val,
+                    ];
+                }
+        }
+
+
+        $this->extensions->hk_UpdateData($this, __FUNCTION__);
+        $this->load->library('json');
+        $this->response->setOutput(AJson::encode($this->data['tree']));
+
+    }
+
+        public function get()
     {
 
         //init controller data
@@ -48,7 +81,6 @@ class ControllerResponsesListingGridContent extends GridController
 
         $this->loadLanguage('design/content');
         $this->acm = new AContentManager();
-
 
         //Prepare filter config
         $grid_filter_params = array_merge(['sortOrder', 'title', 'parent'], (array)$this->data['grid_filter_params']);
@@ -60,7 +92,16 @@ class ControllerResponsesListingGridContent extends GridController
 
         if (isset($this->request->get['pageIndex'])) {
             $this->request->get['start'] = $this->request->get['pageIndex'] - 1;
+            $this->request->get['page'] = $this->request->get['pageIndex'];
         }
+
+        if (isset($this->request->get['sortField'])) {
+            $this->request->get['sidx'] = $this->request->get['sortField'];
+        }
+        if (isset($this->request->get['sortOrder'])) {
+            $this->request->get['sord'] = $this->request->get['sortOrder'];
+        }
+
 
         if (isset($this->request->get['pageSize'])) {
             $this->request->get['limit'] = $this->request->get['pageSize'];
@@ -68,6 +109,14 @@ class ControllerResponsesListingGridContent extends GridController
 
         $filter_grid = new AFilter($filter_data);
         $filter_array = $filter_grid->getFilterData();
+
+        if (isset($this->request->get['title'])) {
+            if ($filter_array['subsql_filter']) {
+                $filter_array['subsql_filter'] .= " AND id.title like '%".htmlspecialchars($this->request->get['title'])."%' ";
+            } else {
+                $filter_array['subsql_filter'] .= " id.title like '%".htmlspecialchars($this->request->get['title'])."%' ";
+            }
+        }
 
 
         if (isset($this->request->get['grid_settings'])) {
@@ -79,6 +128,7 @@ class ControllerResponsesListingGridContent extends GridController
 
         if ($this->request->post['nodeid']) {
             list(, $parent_id) = explode('_', $this->request->post['nodeid']);
+            $parent_id = 0;
             $filter_array['parent_id'] = $parent_id;
             if ($filter_array['subsql_filter']) {
                 $filter_array['subsql_filter'] .= " AND i.parent_content_id='".(int)$filter_array['parent_id']."' ";
@@ -99,15 +149,8 @@ class ControllerResponsesListingGridContent extends GridController
                 }
             }
 
-            if ($this->config->get('config_show_tree_data') && !$need_filter) {
-                if ($filter_array['subsql_filter']) {
-                    $filter_array['subsql_filter'] .= " AND i.parent_content_id='0' ";
-                } else {
-                    //        $filter_array['subsql_filter'] = " i.parent_content_id='0' ";
-                }
-            }
-            if (isset($this->request->get['grid_settings']['parent_id'])) {
-                $parent_id = $this->request->get['grid_settings']['parent_id'];
+            if (isset($this->request->get['parent_id'])) {
+                $parent_id = $this->request->get['parent_id'];
             } else {
                 $parent_id = 0;
             }
@@ -117,6 +160,8 @@ class ControllerResponsesListingGridContent extends GridController
                 $filter_array['subsql_filter'] = " i.parent_content_id='".$parent_id."' ";
             }
         }
+
+        H::df($filter_array);
 
 
         $leaf_nodes = $this->config->get('config_show_tree_data') ? $this->acm->getLeafContents() : array();
@@ -133,7 +178,8 @@ class ControllerResponsesListingGridContent extends GridController
         //$response->recordsFiltered = count($results);
         $i = 0;
 
-        //\H::df($results);
+
+        $response->data = [];
 
         foreach ($results as $result) {
 
@@ -214,21 +260,12 @@ class ControllerResponsesListingGridContent extends GridController
                 'title' => $title_label,
                 "parent" => $result['parent_name'] ? $result['parent_name'] : "",
                 "status" => $result['status'],
-
-                    //$this->html->buildCheckbox(array(
-                    //'name'  => 'status['.$parent_content_id.'_'.$result['content_id'].']',
-                    //'value' => $result['status'],
-                   // 'style' => 'btn_switch',
-                //)),
-                "sort" => $result['sort_order'][$parent_content_id],
-                //$html_string,
-                //$result['parent_content_id'][1],
+                "sort_order" => $result['sort_order'][$parent_content_id],
                 "id" => $result['content_id'],
             ];
             $i++;
         }
 
-        //\H::df($response->rows);
 
         $this->data['response'] = $response;
 
@@ -236,14 +273,13 @@ class ControllerResponsesListingGridContent extends GridController
         //update controller data
         $this->extensions->hk_UpdateData($this, __FUNCTION__);
         $this->load->library('json');
-        //header('Content-Type: application/json');
-        //echo AJson::encode($this->data['response']);
-        //exit(0);
         $this->response->setOutput(AJson::encode($this->data['response']));
     }
 
     public function update()
     {
+
+        H::df($this->request->put);
 
         //init controller data
         $this->extensions->hk_InitData($this, __FUNCTION__);
@@ -258,6 +294,52 @@ class ControllerResponsesListingGridContent extends GridController
                     'reset_value' => true,
                 ));
         }
+
+                $allowedFields = array_merge(array('title','sort_order', 'status'), (array)$this->data['allowed_fields']);
+
+                $ids = explode(',', $this->request->put['id']);
+                if (!empty($ids)) //resort required.
+                {
+                    if ($this->request->put['resort'] == 'yes') {
+                        //get only ids we need
+                        $array = array();
+                        foreach ($ids as $id) {
+                            $array[$id] = $this->request->put['sort_order'][$id];
+                        }
+                        $new_sort = AHelperUtils::build_sort_order($ids, min($array), max($array), $this->request->post['sort_direction']);
+                        $this->request->post['sort_order'] = $new_sort;
+                    }
+                }
+                foreach ($ids as $id) {
+                    $parent_content_id = null;
+                    if (is_int(strpos($id, '_'))) {
+                        list($parent_content_id, $content_id) = explode('_', $id);
+                    } else {
+                        $content_id = $id;
+                    }
+                    foreach ($allowedFields as $field) {
+                        if ($this->request->put[$field] === "true") {
+                            $this->request->put[$field] = 1;
+                        }
+                        $this->acm->editContentField($content_id, $field, $this->request->put[$field], $parent_content_id);
+                    }
+                }
+
+        //update controller data
+        $this->extensions->hk_UpdateData($this, __FUNCTION__);
+    }
+
+
+    public function insert()
+    {
+        // TODO: Implement insert() method.
+        H::df("Insert");
+    }
+
+    public function delete()
+    {
+        // TODO: Implement delete() method.
+        H::df("Delete");
 
         switch ($this->request->post['oper']) {
             case 'del':
@@ -286,52 +368,7 @@ class ControllerResponsesListingGridContent extends GridController
                     }
                 }
                 break;
-            case 'save':
-                $allowedFields = array_merge(array('sort_order', 'status'), (array)$this->data['allowed_fields']);
-                $ids = explode(',', $this->request->post['id']);
-                if (!empty($ids)) //resort required.
-                {
-                    if ($this->request->post['resort'] == 'yes') {
-                        //get only ids we need
-                        $array = array();
-                        foreach ($ids as $id) {
-                            $array[$id] = $this->request->post['sort_order'][$id];
-                        }
-                        $new_sort = AHelperUtils::build_sort_order($ids, min($array), max($array), $this->request->post['sort_direction']);
-                        $this->request->post['sort_order'] = $new_sort;
-                    }
-                }
-                foreach ($ids as $id) {
-                    $parent_content_id = null;
-                    if (is_int(strpos($id, '_'))) {
-                        list($parent_content_id, $content_id) = explode('_', $id);
-                    } else {
-                        $content_id = $id;
-                    }
-                    foreach ($allowedFields as $field) {
-                        $this->acm->editContentField($content_id, $field, $this->request->post[$field][$id], $parent_content_id);
-                    }
-                }
-                break;
-
-            default:
         }
-
-        //update controller data
-        $this->extensions->hk_UpdateData($this, __FUNCTION__);
-    }
-
-
-    public function insert()
-    {
-        // TODO: Implement insert() method.
-        H::df("Insert");
-    }
-
-    public function delete()
-    {
-        // TODO: Implement delete() method.
-        H::df("Delete");
     }
 
     /**
