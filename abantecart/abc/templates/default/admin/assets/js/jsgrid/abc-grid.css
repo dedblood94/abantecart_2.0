@@ -10,6 +10,8 @@
 }
 #grid_action {
 	left:0 !important;
+	height: auto !important;
+	border-left: 1px solid #eee;
 }
 
 .tab-content {
@@ -28,4 +30,28 @@
 }
 #grid_action_inner {
 	height: calc(100% - 35px);
+}
+.grid-mass-actions .dropdown {
+	display: inline-block;
+}
+.grid-mass-actions {
+	margin-bottom: 10px;
+}
+.grid-mass-actions a:not([href]):not([tabindex])  {
+	color: #fff;
+}
+.tab-content {
+	box-shadow: none;
+	-webkit-box-shadow: none;
+}
+.jsgrid-grid-header, .jsgrid-grid-body
+{
+	overflow-y: auto;
+}
+.jsgrid-pager {
+	text-align: right;
+	padding-right: 20px;
+}
+#resizable-container {
+	width: 100% !important;
 }

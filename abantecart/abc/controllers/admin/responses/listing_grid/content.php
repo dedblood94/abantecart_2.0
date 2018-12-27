@@ -53,15 +53,22 @@ class ControllerResponsesListingGridContent extends GridController
             'text' => 'Top level',
             'parent' => "#",
             'selected' => true,
+            'icon' => "fa fa-folder",
         ];
+
 
         foreach ($results as $result) {
                 foreach ($result['parent_content_id'] as $parent_id=>$value) {
                     $parent_val = $parent_id;
+                    $icon = "fa fa-file";
+                    if ($result['cnt'] > 0) {
+                        $icon = "fa fa-folder";
+                    }
                     $this->data['tree'][] = [
                         'id' => $result['content_id'],
                         'text' => $result['title'],
                         'parent' => $parent_val,
+                        'icon' => $icon,
                     ];
                 }
         }
@@ -81,6 +88,11 @@ class ControllerResponsesListingGridContent extends GridController
 
         $this->loadLanguage('design/content');
         $this->acm = new AContentManager();
+
+        if (isset($this->request->get['id']) && isset($this->request->get['getDetails'])) {
+            $this->getDetails($this->request->get['id']);
+            return;
+        }
 
         //Prepare filter config
         $grid_filter_params = array_merge(['sortOrder', 'title', 'parent'], (array)$this->data['grid_filter_params']);
@@ -118,6 +130,26 @@ class ControllerResponsesListingGridContent extends GridController
             }
         }
 
+        if (isset($this->request->get['sort_order'])) {
+            if ($filter_array['subsql_filter']) {
+                $filter_array['subsql_filter'] .= " AND sort_order='".(int)$this->request->get['sort_order']."'";
+            } else {
+                $filter_array['subsql_filter'] .= " sort_order='".(int)$this->request->get['sort_order']."'";
+            }
+        }
+        if (isset($this->request->get['status'])) {
+            if ($this->request->get['status'] == "false")  {
+                $this->request->get['status'] = 0;
+            } else {
+                $this->request->get['status'] = 1;
+            }
+            if ($filter_array['subsql_filter']) {
+                $filter_array['subsql_filter'] .= " AND status='".(int)$this->request->get['status']."'";
+            } else {
+                $filter_array['subsql_filter'] .= " status='".(int)$this->request->get['status']."'";
+            }
+        }
+
 
         if (isset($this->request->get['grid_settings'])) {
             $grid_settings = $this->request->get['grid_settings'];
@@ -151,17 +183,26 @@ class ControllerResponsesListingGridContent extends GridController
 
             if (isset($this->request->get['parent_id'])) {
                 $parent_id = $this->request->get['parent_id'];
+                if (isset($this->request->get['children_count']) && $this->request->get['children_count'] == 0) {
+                    $content_id = $parent_id;
+                }
             } else {
                 $parent_id = 0;
             }
-            if ($filter_array['subsql_filter']) {
-                $filter_array['subsql_filter'] .= " AND i.parent_content_id='".$parent_id."' ";
+            if ($content_id === $parent_id && $parent_id > 0)  {
+                if ($filter_array['subsql_filter']) {
+                    $filter_array['subsql_filter'] .= " AND i.content_id='".$content_id."' ";
+                } else {
+                    $filter_array['subsql_filter'] = " i.content_id='".$content_id."' ";
+                }
             } else {
-                $filter_array['subsql_filter'] = " i.parent_content_id='".$parent_id."' ";
+                if ($filter_array['subsql_filter']) {
+                    $filter_array['subsql_filter'] .= " AND i.parent_content_id='".$parent_id."' ";
+                } else {
+                    $filter_array['subsql_filter'] = " i.parent_content_id='".$parent_id."' ";
+                }
             }
         }
-
-        H::df($filter_array);
 
 
         $leaf_nodes = $this->config->get('config_show_tree_data') ? $this->acm->getLeafContents() : array();
@@ -279,8 +320,6 @@ class ControllerResponsesListingGridContent extends GridController
     public function update()
     {
 
-        H::df($this->request->put);
-
         //init controller data
         $this->extensions->hk_InitData($this, __FUNCTION__);
         $this->loadLanguage('design/content');
@@ -338,13 +377,10 @@ class ControllerResponsesListingGridContent extends GridController
 
     public function delete()
     {
-        // TODO: Implement delete() method.
-        H::df("Delete");
-
-        switch ($this->request->post['oper']) {
-            case 'del':
-                $ids = explode(',', $this->request->post['id']);
-                if (!empty($ids)) {
+        $this->loadLanguage('design/content');
+        $this->acm = new AContentManager();
+        $ids = explode(',', $this->request->delete['id']);
+        if (!empty($ids)) {
                     foreach ($ids as $id) {
                         if (is_int(strpos($id, '_'))) {
                             list(, $content_id) = explode('_', $id);
@@ -367,8 +403,7 @@ class ControllerResponsesListingGridContent extends GridController
                         $this->acm->deleteContent($content_id);
                     }
                 }
-                break;
-        }
+
     }
 
     /**
@@ -429,6 +464,32 @@ class ControllerResponsesListingGridContent extends GridController
         }
         //update controller data
         $this->extensions->hk_UpdateData($this, __FUNCTION__);
+    }
+
+    public function getDetails($id = 0) {
+        //init controller data
+        $this->extensions->hk_InitData($this, __FUNCTION__);
+
+        $this->loadLanguage('design/content');
+        $this->acm = new AContentManager();
+
+        if ($id == 0) {
+            return false;
+        }
+
+        $this->data['detail'] = $this->acm->getContent($id);
+        foreach ($this->data['detail'] as $key => $value) {
+            $this->data['detail'][$key] = [
+               'title' => $this->language->get('text_'.$key),
+               'value' => $value,
+            ];
+        }
+
+        $this->extensions->hk_UpdateData($this, __FUNCTION__);
+
+        $this->view->batchAssign($this->data);
+        $this->processTemplate('common/listing_grid_detail.tpl');
+        $this->response->setOutput($this->view->getOutput());
     }
 
 }

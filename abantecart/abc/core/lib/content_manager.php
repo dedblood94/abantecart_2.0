@@ -333,7 +333,9 @@ class AContentManager
         $lm->deletePageLayout('pages/content/content', 'content_id', ( int )$content_id);
 
         $this->db->query("DELETE FROM ".$this->db->table_name("contents")." WHERE content_id = '".( int )$content_id
-            ."'");
+            ."' OR parent_content_id = '".(int)$content_id."'");
+        \H::df("DELETE FROM ".$this->db->table_name("contents")." WHERE content_id = '".( int )$content_id
+            ."' OR parent_content_id = '".(int)$content_id."'");
         $this->db->query("DELETE FROM ".$this->db->table_name("content_descriptions")." WHERE content_id = '"
             .( int )$content_id."'");
         $this->db->query("DELETE FROM ".$this->db->table_name("contents_to_stores")." WHERE content_id = '"
