@@ -24,6 +24,7 @@
 /abantecart/public/templates/default/admin/*
 /abantecart/public/templates/default/storefront/*
 /abantecart/abc/vendor/*
+!/abantecart/abc/vendor/fico7489/
 /abantecart/public/vendor/*
 /abantecart/public/extensions/*
 /abantecart/abc/composer.lock
