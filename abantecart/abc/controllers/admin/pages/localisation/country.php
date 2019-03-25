@@ -1,4 +1,4 @@
-<?php 
+<?php
 /*------------------------------------------------------------------------------
   $Id$
 
@@ -11,15 +11,17 @@
   License details is bundled with this package in the file LICENSE.txt.
   It is also available at this URL:
   <http://www.opensource.org/licenses/OSL-3.0>
-  
- UPGRADE NOTE: 
+
+ UPGRADE NOTE:
    Do not edit or add to this file if you wish to upgrade AbanteCart to newer
    versions in the future. If you wish to customize AbanteCart for your
-   needs please refer to http://www.AbanteCart.com for more information.  
+   needs please refer to http://www.AbanteCart.com for more information.
 ------------------------------------------------------------------------------*/
 namespace abc\controllers\admin;
 use abc\core\engine\AController;
 use abc\core\engine\AForm;
+use abc\models\locale\Country;
+use abc\models\locale\CountryDescription;
 
 if (!class_exists('abc\core\ABC') || !\abc\core\ABC::env('IS_ADMIN')) {
 	header('Location: static_pages/?forbidden='.basename(__FILE__));
@@ -28,7 +30,7 @@ class ControllerPagesLocalisationCountry extends AController {
 	public $data = array();
 	public $error = array();
 	private $fields = array('status', 'iso_code_2', 'iso_code_3', 'address_format');
- 
+
 	public function main() {
 
           //init controller data
@@ -128,9 +130,21 @@ class ControllerPagesLocalisationCountry extends AController {
 
 		$this->document->setTitle( $this->language->get('heading_title') );
 		if ( $this->request->is_POST() && $this->_validateForm()) {
-			$country_id = $this->model_localisation_country->addCountry($this->request->post);
+			$country = new Country($this->request->post);
+            $country->save();
+            if (is_array($this->request->post['country_name'])) {
+                foreach ($this->request->post['country_name'] as $language_id=>$name) {
+                    $description = [
+                        'country_id'    => $country->country_id,
+                        'language_id'   => $language_id,
+                        'name'          => $name['name'],
+                    ];
+                    $countryDescription = new CountryDescription($description);
+                    $country->description()->save($countryDescription);
+                }
+            }
 			$this->session->data['success'] = $this->language->get('text_success');
-			abc_redirect( $this->html->getSecureURL('localisation/country/update', '&country_id=' . $country_id ) );
+			abc_redirect( $this->html->getSecureURL('localisation/country/update', '&country_id=' . $country->country_id ) );
 		}
 		$this->_getForm();
 
@@ -142,7 +156,7 @@ class ControllerPagesLocalisationCountry extends AController {
 
         //init controller data
         $this->extensions->hk_InitData($this,__FUNCTION__);
-		
+
 		$this->view->assign('success', $this->session->data['success']);
 		if (isset($this->session->data['success'])) {
 			unset($this->session->data['success']);
@@ -190,7 +204,7 @@ class ControllerPagesLocalisationCountry extends AController {
 				$this->data[$f] = '';
 			}
 		}
-		
+
 		//set multilingual fields
 		$this->data['country_name'] = array();
 		if ( $country_info['country_name'] ) {
@@ -210,7 +224,7 @@ class ControllerPagesLocalisationCountry extends AController {
 			$this->data['update'] = $this->html->getSecureURL('listing_grid/country/update_field','&id='.$this->request->get['country_id']);
 			$form = new AForm('HS');
 		}
-		
+
 		$this->document->addBreadcrumb( array (
        		'href'      => $this->data['action'],
        		'text'      => $this->data['heading_title'],
@@ -293,7 +307,7 @@ class ControllerPagesLocalisationCountry extends AController {
     	}
 
 		$this->extensions->hk_ValidateData($this);
-    	
+
 		if (!$this->error) {
 			return TRUE;
 		} else {
@@ -305,37 +319,37 @@ class ControllerPagesLocalisationCountry extends AController {
 		if (!$this->user->canModify('localisation/country')) {
 			$this->error['warning'] = $this->language->get('error_permission');
 		}
-		
+
 		$this->loadModel('setting/store');
 		$this->loadModel('sale/customer');
 		$this->loadModel('localisation/zone');
 		$this->loadModel('localisation/location');
-		
+
 		foreach ($this->request->post['selected'] as $country_id) {
 			if ($this->config->get('config_country_id') == $country_id) {
 				$this->error['warning'] = $this->language->get('error_default');
 			}
-			
+
 			$store_total = $this->model_setting_store->getTotalStoresByCountryId($country_id);
 
 			if ($store_total) {
 				$this->error['warning'] = sprintf($this->language->get('error_store'), $store_total);
 			}
-			
+
 			$address_total = $this->model_sale_customer->getTotalAddressesByCountryId($country_id);
-	
+
 			if ($address_total) {
 				$this->error['warning'] = sprintf($this->language->get('error_address'), $address_total);
 			}
-				
+
 			$zone_total = $this->model_localisation_zone->getTotalZonesByCountryId($country_id);
-		
+
 			if ($zone_total) {
 				$this->error['warning'] = sprintf($this->language->get('error_zone'), $zone_total);
 			}
-		
+
 			$zone_to_location_total = $this->model_localisation_location->getTotalZoneToLocationByCountryID($country_id);
-		
+
 			if ($zone_to_location_total) {
 				$this->error['warning'] = sprintf($this->language->get('error_zone_to_location'), $zone_to_location_total);
 			}

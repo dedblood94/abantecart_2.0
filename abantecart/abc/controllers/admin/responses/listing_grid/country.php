@@ -22,6 +22,7 @@ use abc\core\engine\AController;
 use abc\core\lib\AError;
 use abc\core\lib\AFilter;
 use abc\core\lib\AJson;
+use abc\models\locale\Country;
 use stdClass;
 
 if (!class_exists('abc\core\ABC') || !\abc\core\ABC::env('IS_ADMIN')) {
@@ -38,7 +39,7 @@ class ControllerResponsesListingGridCountry extends AController {
 		$this->loadModel('localisation/country');
 
 		//Prepare filter config
-		$grid_filter_params = array_merge(array ('name' => 'cd.name', 'iso_code_2' => 'c.iso_code_2', 'iso_code_3' => 'c.iso_code_3'), (array)$this->data['grid_filter_params']);
+		$grid_filter_params = array_merge(array ('name' => 'name', 'iso_code_2' => 'c.iso_code_2', 'iso_code_3' => 'c.iso_code_3'), (array)$this->data['grid_filter_params']);
 		$filter = new AFilter(array( 'method' => 'post', 'grid_filter_params' => $grid_filter_params ));
 
 		$total = $this->model_localisation_country->getTotalCountries($filter->getFilterData());
@@ -46,7 +47,17 @@ class ControllerResponsesListingGridCountry extends AController {
 		$response->page = $filter->getParam('page');
 		$response->total = $filter->calcTotalPages($total);
 		$response->records = $total;
-		$results = $this->model_localisation_country->getCountries($filter->getFilterData());
+
+        $this->db->enableQueryLog();
+		$countryInst = new Country();
+        $results = $countryInst->joinRelations('description', true)
+            ->orderByJoin('description.name', 'desc')
+        //join('country_descriptions', 'country_descriptions.country_id', 'countries.country_id' )
+            ->get()
+            ->toArray();
+        \H::df($this->db->getQueryLog());
+        //\H::df($filter->getFilterData());
+		//$results = $this->model_localisation_country->getCountries($filter->getFilterData());
 
 		$i = 0;
 		$language_id = $this->language->getContentLanguageID();
@@ -118,7 +129,7 @@ class ControllerResponsesListingGridCountry extends AController {
 			case 'save':
 				$allowedFields = array_merge(array ('iso_code_2', 'iso_code_3', 'status'), (array)$this->data['allowed_fields']);
 				$ids = explode(',', $this->request->post[ 'id' ]);
-				
+
 				if (!empty($ids))
 					foreach ($ids as $id) {
 						foreach ($allowedFields as $f) {
@@ -133,19 +144,19 @@ class ControllerResponsesListingGridCountry extends AController {
 									return null;								}
 								$this->model_localisation_country->editCountry($id, array( $f => $this->request->post[ $f ][ $id ] ));
 							}
-							
+
 						}
-						
+
 						if (isset($this->request->post[ 'country_name' ][ $id ])) {
 							foreach ($this->request->post[ 'country_name' ][ $id ] as $lang => $value) {
 		    					$err = $this->_validateField('name', $value['name']);
-		    					if (!empty($err)) {							
+		    					if (!empty($err)) {
 									$this->response->setOutput($err);
 									return null;
 								}
 							}
 							$this->model_localisation_country->editCountry($id, array( 'country_name' => $this->request->post['country_name'][ $id ] ));
-						}						
+						}
 					}
 
 				break;
@@ -184,11 +195,11 @@ class ControllerResponsesListingGridCountry extends AController {
 			foreach ($this->request->post as $key => $value) {
 				$err = '';
 				if ( $key == 'country_name' ) {
-					foreach ($value as $lang => $dvalue) {		
+					foreach ($value as $lang => $dvalue) {
 		    			$err .= $this->_validateField('name', $dvalue['name']);
-		    		}				
+		    		}
 				} else {
-					$err = $this->_validateField($key, $value);			
+					$err = $this->_validateField($key, $value);
 				}
 				if (!empty($err)) {
 					$error = new AError('');
@@ -225,7 +236,7 @@ class ControllerResponsesListingGridCountry extends AController {
 				$this->model_localisation_country->editCountry($id, array( 'country_name' => $v ));
 			}
 		}
-		
+
 		//update controller data
 		$this->extensions->hk_UpdateData($this, __FUNCTION__);
 	}

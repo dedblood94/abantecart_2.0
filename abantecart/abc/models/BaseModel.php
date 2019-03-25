@@ -21,6 +21,7 @@ namespace abc\models;
 use abc\core\ABC;
 use abc\core\engine\Registry;
 use abc\core\lib\Abac;
+use Fico7489\Laravel\EloquentJoin\Traits\EloquentJoin;
 use H;
 use Illuminate\Database\Eloquent\Model as OrmModel;
 use Illuminate\Database\Eloquent\Builder;
@@ -41,7 +42,12 @@ use ReflectionMethod;
  */
 class BaseModel extends OrmModel
 {
-    use CastTrait;
+    use CastTrait, EloquentJoin;
+
+    protected $useTableAlias = false;
+    protected $appendRelationsCount = false;
+    protected $leftJoin = false;
+    protected $aggregateMethod = 'MAX';
 
     const CREATED_AT = 'date_added';
     const UPDATED_AT = 'date_modified';
@@ -538,6 +544,11 @@ class BaseModel extends OrmModel
     public function getTableColumns()
     {
         return $this->getConnection()->getSchemaBuilder()->getColumnListing($this->getTable());
+    }
+
+    public function getFullTableName()
+    {
+        return $this->getConnection()->getTablePrefix() . $this->getTable();
     }
 
     protected function newBaseQueryBuilder()

@@ -66,11 +66,8 @@ class Currency extends BaseModel
      *
      * @return array
      */
-    public function getCurrencies(): array
+    public function getCurrencies()
     {
-        if (!$this->hasPermission('read')) {
-            return false;
-        }
         $currency_data = false;
         //$currency_data = $this->cache->pull('localization.currency');
 
@@ -98,17 +95,6 @@ class Currency extends BaseModel
         return $currency_data;
     }
 
-    /**
-     * @param       $operation
-     *
-     * @param array $columns
-     *
-     * @return bool
-     */
-    public function hasPermission(string $operation, array $columns = ['*']): bool
-    {
-        return true;
-    }
 
     /**
      * @throws \ReflectionException
