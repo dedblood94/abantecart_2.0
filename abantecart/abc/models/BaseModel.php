@@ -294,7 +294,9 @@ class BaseModel extends OrmModel
             $this->affectedColumns = $columns;
         }
 
-        return $this->registry->get('bouncer')->can($operation, $this->getClass());
+        if ($this->registry->get('bouncer')) {
+            return $this->registry->get('bouncer')->can($operation, $this->getClass());
+        }
 
         /**
          * @var Abac $abac
