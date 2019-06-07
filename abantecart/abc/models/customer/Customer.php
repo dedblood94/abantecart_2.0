@@ -8,6 +8,7 @@ use abc\models\system\Audit;
 use abc\models\system\Store;
 use Iatstuti\Database\Support\CascadeSoftDeletes;
 use Illuminate\Database\Eloquent\SoftDeletes;
+use Silber\Bouncer\Database\HasRolesAndAbilities;
 
 /**
  * Class Customer
@@ -47,6 +48,8 @@ use Illuminate\Database\Eloquent\SoftDeletes;
 class Customer extends BaseModel
 {
     use SoftDeletes, CascadeSoftDeletes;
+    use HasRolesAndAbilities;
+
 
     protected $cascadeDeletes = ['addresses', 'notifications', 'transactions'];
 
@@ -346,6 +349,14 @@ class Customer extends BaseModel
     public function addresses()
     {
         return $this->hasMany(Address::class, 'customer_id');
+    }
+
+    /**
+     * @return \Illuminate\Database\Eloquent\Relations\HasMany
+     */
+    public function communications()
+    {
+        return $this->hasMany(CustomerCommunication::class, 'customer_id');
     }
 
     /**

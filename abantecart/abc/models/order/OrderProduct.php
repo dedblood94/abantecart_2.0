@@ -33,6 +33,7 @@ class OrderProduct extends BaseModel
 {
     use SoftDeletes, CascadeSoftDeletes;
 
+    protected $mainEntity = Order::class;
     protected $cascadeDeletes = ['order_downloads'];
 
     protected $primaryKey = 'order_product_id';

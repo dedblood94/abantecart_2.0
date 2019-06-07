@@ -342,7 +342,8 @@ class ModelCatalogProduct extends Model
                 ON (p.product_id = p2c.product_id)
             WHERE ".$filters."
                     AND p2s.store_id = '".$store_id."'
-                    AND p2c.category_id in (".$categList.")";
+                    AND p2c.category_id in (".$categList.")"
+            ." GROUP BY p.product_id ";
 
             $sort_data = [
                 'pd.name'       => 'LCASE(pd.name)',
@@ -410,7 +411,8 @@ class ModelCatalogProduct extends Model
                     WHERE 
                         p2c.category_id in (".$categList.")
                         AND ".$filters."
-                        AND p2s.store_id = '".$store_id."'";
+                        AND p2s.store_id = '".$store_id."'"
+                        ." GROUP BY p.product_id ";
             $query = $this->db->query( $sql );
 
             $cache = $query->row['total'];

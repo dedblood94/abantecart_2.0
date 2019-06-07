@@ -7,6 +7,7 @@ use abc\models\system\Audit;
 use abc\core\lib\AException;
 use Iatstuti\Database\Support\CascadeSoftDeletes;
 use Illuminate\Database\Eloquent\SoftDeletes;
+use Silber\Bouncer\Database\HasRolesAndAbilities;
 
 /**
  * Class AcUser
@@ -33,6 +34,7 @@ use Illuminate\Database\Eloquent\SoftDeletes;
 class User extends BaseModel
 {
     use SoftDeletes, CascadeSoftDeletes;
+    use HasRolesAndAbilities;
 
     protected $cascadeDeletes = ['notifications'];
 
@@ -80,7 +82,7 @@ class User extends BaseModel
     {
         parent::__construct($attributes = []);
         if (!$this->isUser()) {
-            throw new AException (AC_ERR_LOAD, 'Error: permission denied to access '.__CLASS__);
+     //       throw new AException (AC_ERR_LOAD, 'Error: permission denied to access '.__CLASS__);
         }
     }
 

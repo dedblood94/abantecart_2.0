@@ -221,6 +221,9 @@ class Category extends BaseModel
      */
     public function getCategory(int $categoryId)
     {
+        if (!$this->hasPermission('read')) {
+         return [];
+        }
         $storeId = (int)$this->config->get('config_store_id');
         if (ABC::env('IS_ADMIN')) {
             $languageId = (int)$this->registry->get('language')->getContentLanguageID();
@@ -354,6 +357,10 @@ class Category extends BaseModel
      */
     public function getCategoriesData($data)
     {
+        if (!$this->hasPermission('read')) {
+            return [];
+        }
+
         if ($data['language_id']) {
             $language_id = (int)$data['language_id'];
         } else {

@@ -30,10 +30,19 @@ use abc\core\lib\ALanguageManager;
 use abc\core\engine\ExtensionsApi;
 use abc\core\engine\Registry;
 use abc\core\lib\AError;
+use abc\core\lib\UserResolver;
+use abc\models\catalog\Category;
+use abc\models\customer\Customer;
+use abc\models\user\Ability;
+use abc\models\user\Role;
+use abc\models\user\User;
 use H;
 use Illuminate\Cache\CacheManager;
 use Illuminate\Events\Dispatcher;
 use Illuminate\Filesystem\Filesystem;
+use Silber\Bouncer\Bouncer;
+use Silber\Bouncer\Database\Models;
+use Silber\Bouncer\Guard;
 
 mb_internal_encoding(ABC::env('APP_CHARSET'));
 ini_set('default_charset', 'utf-8');
@@ -490,6 +499,21 @@ if (!ABC::env('IS_ADMIN')) { // storefront load
 
 // Currency
 registerClass($registry, 'currency', 'ACurrency', [$registry], '\abc\core\lib\ACurrency', [$registry]);
+
+// Bouncer
+$userResolver = new UserResolver($registry);
+Models::setPrefix($registry->get('db')->prefix());
+
+if ($userResolver->getUserFromModel()) {
+    $registry->set('bouncer', Bouncer::create($userResolver->getUserFromModel()));
+} else {
+    $registry->set('bouncer', Bouncer::create()); // Should Guest model in Bouncer::create
+}
+$registry->get('bouncer')->useRoleModel(Role::class);
+$registry->get('bouncer')->useAbilityModel(Ability::class);
+$registry->get('bouncer')->useUserModel($userResolver->getUserModel());
+
+
 
 //register controllers event listeners
 /**

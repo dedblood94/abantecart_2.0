@@ -52,7 +52,7 @@ class CustomerCommunication extends BaseModel
     }
 
     public function customer() {
-        return $this->hasOne(Customer::class, 'customer_id', 'customer_id');
+        return $this->belongsTo(Customer::class, 'customer_id');
     }
 
     public static function getCustomerCommunications(int $customer_id, $data = []) {

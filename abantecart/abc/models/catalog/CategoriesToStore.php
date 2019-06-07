@@ -19,6 +19,7 @@ use abc\models\system\Store;
 class CategoriesToStore extends BaseModel
 {
 
+    protected $mainEntity = Category::class;
     /**
      * @var string
      */

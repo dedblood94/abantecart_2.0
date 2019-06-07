@@ -21,6 +21,16 @@ namespace abc\models;
 use abc\core\ABC;
 use abc\core\engine\Registry;
 use abc\core\lib\Abac;
+use abc\models\catalog\Category;
+use abc\models\catalog\Manufacturer;
+use abc\models\catalog\Product;
+use abc\models\content\Content;
+use abc\models\customer\Customer;
+use abc\models\order\Order;
+use abc\models\system\Audit;
+use abc\models\user\Ability;
+use abc\models\user\Role;
+use abc\models\user\User;
 use Chelout\RelationshipEvents\Concerns\HasBelongsToEvents;
 use Chelout\RelationshipEvents\Concerns\HasBelongsToManyEvents;
 use Chelout\RelationshipEvents\Concerns\HasManyEvents;
@@ -38,6 +48,8 @@ use Illuminate\Validation\ValidationException;
 use Illuminate\Validation\Validator;
 use ReflectionClass;
 use ReflectionMethod;
+use Silber\Bouncer\Bouncer;
+use Silber\Bouncer\Database\Models;
 
 /**
  * Class BaseModel
@@ -124,6 +136,17 @@ class BaseModel extends OrmModel
      */
     protected $rules = [];
 
+    protected $entities = [
+        Product::class,
+        Category::class,
+        Order::class,
+        Customer::class,
+        User::class,
+        Manufacturer::class,
+        Content::class,
+        Audit::class,
+    ];
+
     /**
      * Auditing setup
      *
@@ -191,6 +214,7 @@ class BaseModel extends OrmModel
         ) {
             $this->forceDeleting = (bool)static::$env['FORCE_DELETING'][$called_class];
         }
+
         parent::__construct($attributes);
         static::boot();
         $this->newBaseQueryBuilder();
@@ -260,11 +284,17 @@ class BaseModel extends OrmModel
     public function hasPermission(string $operation, array $columns = ['*']): bool
     {
 
+        if ($operation === 'update') {
+            return true;
+        }
+
         if ($columns[0] == '*') {
             $this->affectedColumns = (array)$this->fillable + (array)$this->dates;
         } else {
             $this->affectedColumns = $columns;
         }
+
+        return $this->registry->get('bouncer')->can($operation, $this->getClass());
 
         /**
          * @var Abac $abac
@@ -606,5 +636,29 @@ class BaseModel extends OrmModel
     {
         return $this->mainClassKey ?? $this->getKeyName();
     }
+
+    public function getMainEntity()
+    {
+        if (isset($this->mainEntity)) {
+            return $this->mainEntity;
+        }
+
+        if (in_array($this->getClass(), $this->entities, true)) {
+            return $this->getClass();
+        }
+
+        $relations = $this->getRelationships('BelongsTo');
+        if (!$relations) {
+            return false;
+        }
+        foreach ($relations as $relation) {
+            if (in_array($relation['model'], $this->entities, true)) {
+                return $relation['model'];
+            } else {
+                return (new $relation['model'])->getMainEntity();
+            }
+        }
+    }
+
 
 }

@@ -22,6 +22,8 @@ namespace abc\core\lib;
 
 use abc\core\ABC;
 use abc\core\engine\Registry;
+use abc\models\customer\Customer;
+use abc\models\user\User;
 
 class UserResolver
 {
@@ -46,9 +48,17 @@ class UserResolver
      */
     protected $userId;
     /**
+     * @var string
+     */
+    protected $userIdString;
+    /**
      * @var int | string - userGroupId or CustomerGroupId or SystemUserGroupName
      */
     protected $userGroupId;
+    /**
+     * @var string
+     */
+    protected $userModel;
 
     public function __construct(Registry $registry)
     {
@@ -57,7 +67,7 @@ class UserResolver
         $userClassName = ABC::getFullClassName('AUser');
         $customerClassName = ABC::getFullClassName('ACustomer');
 
-        if(php_sapi_name() == 'cli' && $this->registry->get('os_user') instanceof OSUser){
+        if (php_sapi_name() == 'cli' && $this->registry->get('os_user') instanceof OSUser) {
             $this->userType = 'system';
             /**
              * @var OSUser $user
@@ -67,30 +77,30 @@ class UserResolver
             $this->userObject = $user;
             $this->userName = $user->getUserName();
             $this->userId = null;
-        }
-        elseif (
+            $this->userModel = User::class;
+        } elseif (
             ABC::env('IS_ADMIN')
-            && $this->registry->get('user') instanceof $userClassName)
-        {
+            && $this->registry->get('user') instanceof $userClassName) {
             /**
              * @var AUser $user
              */
             $user = $this->registry->get('user');
-            $this->userType = $user->getUserGroupId() == 1 ? 'root'  : 'admin';
+            $this->userType = $user->getUserGroupId() == 1 ? 'root' : 'admin';
             $this->userGroupId = $user->getUserGroupId();
             $this->userObject = $this->registry->get('user');
             $this->userId = $this->userObject->getId();
             $this->userName = $this->userObject->getUserName();
-        }
-        elseif ( $this->registry->get('customer') instanceof $customerClassName)
-        {
+            $this->userModel = User::class;
+        } elseif ($this->registry->get('customer') instanceof $customerClassName) {
             $customer = $this->registry->get('customer');
             $this->userType = 'customer';
             $this->userGroupId = $customer->getCustomerGroupId();
             $this->userObject = $customer;
             $this->userId = $this->userObject->getId();
             $this->userName = $this->userObject->getFirstName().' '.$this->userObject->getLastName();
-        }else{
+            $this->userModel = Customer::class;
+            $this->userIdString = 'customer_id';
+        } else {
             //TODO: add API-user
         }
         return $this;
@@ -111,6 +121,7 @@ class UserResolver
     {
         return $this->userGroupId ?? 'unknown';
     }
+
     /**
      * @return string
      */
@@ -118,6 +129,7 @@ class UserResolver
     {
         return $this->userId;
     }
+
     /**
      * @return string
      */
@@ -133,4 +145,43 @@ class UserResolver
     {
         return $this->userObject ?? false;
     }
+
+    /**
+     * @return bool|string
+     */
+    public function getUserModel()
+    {
+        return $this->userModel ?? false;
+    }
+
+    /**
+     * @return string
+     */
+    public function getUserIdString()
+    {
+        return $this->userIdString ?? 'user_id';
+    }
+
+    /**
+     * @return bool|User|Customer
+     */
+    public function getUserFromModel()
+    {
+        $userClassName = ABC::getFullClassName('AUser');
+        $customerClassName = ABC::getFullClassName('ACustomer');
+
+        if (ABC::env('IS_ADMIN') && $this->registry->get('user') instanceof $userClassName) {
+            $user = User::find($this->userId);
+            if ($user) {
+                return $user;
+            }
+        } elseif ($this->registry->get('customer') instanceof $customerClassName) {
+            $customer = Customer::find($this->userId);
+            if ($customer) {
+                return $customer;
+            }
+        }
+        return false;
+    }
+
 }
