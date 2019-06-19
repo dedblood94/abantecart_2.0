@@ -308,6 +308,8 @@ class BaseModel extends OrmModel
 
         if ($abac) {
             return $abac->hasPermission($this->policyGroup.'-'.$this->policyObject.'-'.$operation, $this);
+        } else {
+            return true;
         }
     }
 
