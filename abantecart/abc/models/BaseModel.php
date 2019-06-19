@@ -306,7 +306,9 @@ class BaseModel extends OrmModel
         $resourceObject->name = $this->policyObject;
         $resourceObject->getColumns = $columns;
 
-        return $abac->hasPermission($this->policyGroup.'-'.$this->policyObject.'-'.$operation, $this);
+        if ($abac) {
+            return $abac->hasPermission($this->policyGroup.'-'.$this->policyObject.'-'.$operation, $this);
+        }
     }
 
     /**
