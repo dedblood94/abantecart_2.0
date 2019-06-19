@@ -412,9 +412,9 @@ class Category extends BaseModel
         $desc = false;
 
         if (isset($data['sort']) && in_array($data['sort'], array_keys($sort_data))) {
-            $sortBy = $data['sort'];
+            $sortBy = [$data['sort']];
         } else {
-            $sortBy =  'categories.sort_order, category_descriptions.name';
+            $sortBy =  ['categories.sort_order', 'category_descriptions.name'];
         }
 
         if (isset($data['order']) && ($data['order'] == 'DESC')) {
@@ -422,9 +422,13 @@ class Category extends BaseModel
         }
 
         if ($desc) {
-            $categories = $categories->orderBy($sortBy, 'desc');
+            foreach ($sortBy as $item) {
+                $categories = $categories->orderBy($item, 'desc');
+            }
         } else {
-            $categories = $categories->orderBy($sortBy);
+            foreach ($sortBy as $item) {
+                $categories = $categories->orderBy($item);
+            }
         }
 
 
