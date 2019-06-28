@@ -11,11 +11,11 @@
   License details is bundled with this package in the file LICENSE.txt.
   It is also available at this URL:
   <http://www.opensource.org/licenses/OSL-3.0>
-  
- UPGRADE NOTE: 
+
+ UPGRADE NOTE:
    Do not edit or add to this file if you wish to upgrade AbanteCart to newer
    versions in the future. If you wish to customize AbanteCart for your
-   needs please refer to http://www.AbanteCart.com for more information.  
+   needs please refer to http://www.AbanteCart.com for more information.
 ------------------------------------------------------------------------------*/
 
 namespace abc\controllers\admin;
@@ -23,6 +23,9 @@ namespace abc\controllers\admin;
 use abc\core\ABC;
 use abc\core\engine\AController;
 use abc\core\engine\AForm;
+use abc\models\user\AssignedRole;
+use abc\models\user\Role;
+use abc\models\user\User;
 use H;
 
 class ControllerPagesUserUser extends AController
@@ -186,6 +189,9 @@ class ControllerPagesUserUser extends AController
         $this->loadModel('user/user');
         if ($this->request->is_POST() && $this->validateForm()) {
             $user_id = $this->model_user_user->addUser($this->request->post);
+            if ($user_id && isset($this->request->post['roles'])) {
+                User::updateRoles($user_id, $this->request->post['roles']);
+            }
             $this->session->data['success'] = $this->language->get('text_success');
             abc_redirect($this->html->getSecureURL('user/user/update', '&user_id='.$user_id));
         }
@@ -212,6 +218,9 @@ class ControllerPagesUserUser extends AController
 
         if ($this->request->is_POST() && $this->validateForm()) {
             $this->model_user_user->editUser($this->request->get['user_id'], $this->request->post);
+            if (isset($this->request->post['roles'])) {
+                User::updateRoles($this->request->get['user_id'], $this->request->post['roles']);
+            }
             $this->session->data['success'] = $this->language->get('text_success');
             abc_redirect($this->html->getSecureURL('user/user/update', '&user_id='.$this->request->get['user_id']));
         }
@@ -325,6 +334,34 @@ class ControllerPagesUserUser extends AController
                 'style'    => ($f == 'password' ? 'medium-field' : ''),
             ]);
         }
+
+        $arRoles = Role::all()->toArray();
+        $roles = [];
+        foreach ($arRoles as $role) {
+            $roles[$role['id']] = $role['title'];
+        }
+        $this->data['roles'] = [];
+
+        if ($user_id) {
+            $assignedRoles = AssignedRole::select(['role_id'])
+                ->where('entity_id', '=', $user_id)
+                ->where('entity_type', '=', 'User')
+                ->get();
+            if ($assignedRoles) {
+                foreach ($assignedRoles as $assignedRole) {
+                    $this->data['roles'][] = $assignedRole->role_id;
+                }
+            }
+        }
+
+        $this->data['form']['fields']['roles'] = $form->getFieldHtml([
+            'type'     => 'checkboxgroup',
+            'name'     => 'roles[]',
+            'value'    => $this->data['roles'],
+            'options'  => $roles,
+            'style'    => 'chosen',
+            'required' => true,
+        ]);
 
         //forbid to downgrade permissions
         // if user admin and only one

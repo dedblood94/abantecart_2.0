@@ -1,0 +1,35 @@
+<?xml version="1.0"?>
+<definitions>
+	<definition>
+		<key>heading_title</key>
+		<value><![CDATA[Roles]]></value>
+	</definition>
+	<definition>
+		<key>title_role</key>
+		<value><![CDATA[Role Name]]></value>
+	</definition>
+	<definition>
+		<key>title_user_count</key>
+		<value><![CDATA[User Count]]></value>
+	</definition>
+	<definition>
+		<key>title_operation</key>
+		<value><![CDATA[Actions]]></value>
+	</definition>
+	<definition>
+		<key>title_ability</key>
+		<value><![CDATA[Ability Name]]></value>
+	</definition>
+	<definition>
+		<key>title_read</key>
+		<value><![CDATA[Read]]></value>
+	</definition>
+	<definition>
+		<key>title_write</key>
+		<value><![CDATA[Write]]></value>
+	</definition>
+	<definition>
+		<key>title_delete</key>
+		<value><![CDATA[Delete]]></value>
+	</definition>
+</definitions>

@@ -509,6 +509,7 @@ if ($userResolver->getUserFromModel()) {
 } else {
     $registry->set('bouncer', Bouncer::create()); // Should Guest model in Bouncer::create
 }
+$registry->get('bouncer')->scope()->to($registry->get('config')->get('config_store_id'));
 $registry->get('bouncer')->useRoleModel(Role::class);
 $registry->get('bouncer')->useAbilityModel(Ability::class);
 $registry->get('bouncer')->useUserModel($userResolver->getUserModel());

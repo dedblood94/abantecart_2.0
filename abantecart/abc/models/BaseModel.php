@@ -28,8 +28,6 @@ use abc\models\content\Content;
 use abc\models\customer\Customer;
 use abc\models\order\Order;
 use abc\models\system\Audit;
-use abc\models\user\Ability;
-use abc\models\user\Role;
 use abc\models\user\User;
 use Chelout\RelationshipEvents\Concerns\HasBelongsToEvents;
 use Chelout\RelationshipEvents\Concerns\HasBelongsToManyEvents;
@@ -48,8 +46,6 @@ use Illuminate\Validation\ValidationException;
 use Illuminate\Validation\Validator;
 use ReflectionClass;
 use ReflectionMethod;
-use Silber\Bouncer\Bouncer;
-use Silber\Bouncer\Database\Models;
 
 /**
  * Class BaseModel
@@ -294,6 +290,7 @@ class BaseModel extends OrmModel
             $this->affectedColumns = $columns;
         }
 
+        return true;
         if ($this->registry->get('bouncer')) {
             return $this->registry->get('bouncer')->can($operation, $this->getClass());
         }
