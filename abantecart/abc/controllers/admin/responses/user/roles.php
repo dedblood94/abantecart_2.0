@@ -162,6 +162,7 @@ class ControllerResponsesUserRoles extends AController
             $this->db->raw('GROUP_CONCAT('.$this->db->table_name('abilities').'.name) as name'),
             $this->db->raw('GROUP_CONCAT('.$this->db->table_name('abilities').'.parent_id) as parent_id'),
             $this->db->raw('GROUP_CONCAT('.$this->db->table_name('abilities').'.title) as title'),
+            $this->db->raw('GROUP_CONCAT('.$this->db->table_name('abilities').'.user_model) as user_model'),
             'abilities.entity_type',
         ])
             ->whereNull('entity_id')

@@ -5,6 +5,14 @@
 		<value><![CDATA[Roles]]></value>
 	</definition>
 	<definition>
+		<key>heading_title_user</key>
+		<value><![CDATA[User Roles]]></value>
+	</definition>
+	<definition>
+		<key>heading_title_customers</key>
+		<value><![CDATA[Customer Roles]]></value>
+	</definition>
+	<definition>
 		<key>title_role</key>
 		<value><![CDATA[Role Name]]></value>
 	</definition>

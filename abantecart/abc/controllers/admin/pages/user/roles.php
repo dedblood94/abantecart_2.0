@@ -27,12 +27,21 @@ class ControllerPagesUserRoles extends AController
             'text'      => $this->language->get('text_home'),
             'separator' => false,
         ]);
-        $this->document->addBreadcrumb([
-            'href'      => $this->html->getSecureURL('user/roles'),
-            'text'      => $this->language->get('heading_title'),
-            'separator' => ' :: ',
-            'current'   => true,
-        ]);
+        if (isset($this->request->get['customer'])) {
+            $this->document->addBreadcrumb([
+                'href'      => $this->html->getSecureURL('user/roles'),
+                'text'      => $this->language->get('heading_title_customers'),
+                'separator' => ' :: ',
+                'current'   => true,
+            ]);
+        } else {
+            $this->document->addBreadcrumb([
+                'href'      => $this->html->getSecureURL('user/roles'),
+                'text'      => $this->language->get('heading_title_user'),
+                'separator' => ' :: ',
+                'current'   => true,
+            ]);
+        }
 
         $userModel = User::class;
         if (isset($this->request->get['customer'])) {
@@ -94,8 +103,6 @@ class ControllerPagesUserRoles extends AController
                     'align'        => 'left',
                     'sortable'     => false,
                     'property'     => 'entity_type',
-                    'collapseIcon' => true,
-                    'direction'    => true,
                     'filterable'   => true,
                 ],
                 [

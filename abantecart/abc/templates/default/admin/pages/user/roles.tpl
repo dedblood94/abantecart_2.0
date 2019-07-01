@@ -286,6 +286,12 @@
 							index = this.roles.indexOf(item);
 							this.roles.splice(index, 1);
 						}
+						if (typeof this.roles[0] != "undefined") {
+							this.selectRow(this.roles[0])
+						} else {
+							this.abilities_rows = [ {} ];
+							this.forceRerender();
+						}
 					},
 					selectRow(item) {
 						this.selected = [];

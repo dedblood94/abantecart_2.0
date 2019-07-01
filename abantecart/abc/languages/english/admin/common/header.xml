@@ -229,6 +229,14 @@
 		<value><![CDATA[User Groups]]></value>
 	</definition>
 	<definition>
+		<key>text_user_role</key>
+		<value><![CDATA[User Roles]]></value>
+	</definition>
+	<definition>
+		<key>text_customer_role</key>
+		<value><![CDATA[Customer Roles]]></value>
+	</definition>
+	<definition>
 		<key>text_weight_class</key>
 		<value><![CDATA[Weight Classes]]></value>
 	</definition>

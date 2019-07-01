@@ -290,6 +290,7 @@ final class AConfig
             if ($this->cnfg['current_store_id'] != $this->cnfg['config_store_id']) {
                 $this->reloadSettings($this->cnfg['current_store_id']);
                 $this->cnfg['config_store_id'] = $this->cnfg['current_store_id'];
+                $this->registry->get('bouncer')->scope()->to($this->cnfg['config_store_id']);
             }
         }
 
