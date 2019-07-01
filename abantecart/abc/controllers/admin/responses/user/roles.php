@@ -37,7 +37,6 @@ class ControllerResponsesUserRoles extends AController
         if (!isset($post['roleName'])) {
             return;
         }
-        \H::df($post);
 
         if (isset($post['user_model'])) {
             $this->userModel = $post['user_model'];

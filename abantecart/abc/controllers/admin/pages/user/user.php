@@ -23,15 +23,20 @@ namespace abc\controllers\admin;
 use abc\core\ABC;
 use abc\core\engine\AController;
 use abc\core\engine\AForm;
+use abc\models\user\Ability;
 use abc\models\user\AssignedRole;
+use abc\models\user\Permission;
 use abc\models\user\Role;
 use abc\models\user\User;
 use H;
+use Laracasts\Utilities\JavaScript\PHPToJavaScriptTransformer;
 
 class ControllerPagesUserUser extends AController
 {
     public $data = [];
     public $error = [];
+    /** @var string $userModel */
+    private $userModel;
     protected $fields = ['username', 'firstname', 'lastname', 'email', 'user_group_id', 'status'];
 
     public function main()
@@ -203,13 +208,14 @@ class ControllerPagesUserUser extends AController
 
     public function update()
     {
-
         //init controller data
         $this->extensions->hk_InitData($this, __FUNCTION__);
 
         $this->loadLanguage('user/user');
         $this->document->setTitle($this->language->get('heading_title'));
         $this->loadModel('user/user');
+
+        $this->getTabs($this->request->get['user_id'], 'general');
 
         $this->view->assign('success', $this->session->data['success']);
         if (isset($this->session->data['success'])) {
@@ -224,6 +230,7 @@ class ControllerPagesUserUser extends AController
             $this->session->data['success'] = $this->language->get('text_success');
             abc_redirect($this->html->getSecureURL('user/user/update', '&user_id='.$this->request->get['user_id']));
         }
+
         $this->getForm();
 
         //update controller data
@@ -233,7 +240,6 @@ class ControllerPagesUserUser extends AController
     protected function getForm()
     {
 
-        $this->data = [];
         $this->data['error'] = $this->error;
 
         $this->document->initBreadcrumb([
@@ -335,7 +341,9 @@ class ControllerPagesUserUser extends AController
             ]);
         }
 
-        $arRoles = Role::all()->toArray();
+        $arRoles = Role::where('user_model', '=', User::class)
+            ->get()
+            ->toArray();
         $roles = [];
         foreach ($arRoles as $role) {
             $roles[$role['id']] = $role['title'];
@@ -546,6 +554,188 @@ class ControllerPagesUserUser extends AController
             return true;
         } else {
             return false;
+        }
+    }
+
+    private function getTabs(int $user_id, $active = '')
+    {
+        $this->data['tabs']['general'] = [
+            'href'   => $this->html->getSecureURL('user/user/update', '&user_id='.$user_id),
+            'text'   => $this->language->get('tab_user_detail'),
+            'active' => ($active === 'general'),
+            'sort_order' => 0,
+        ];
+        $this->data['tabs']['permissions'] = [
+            'href'   => $this->html->getSecureURL('user/user/permissions', '&user_id='.$user_id),
+            'text'   => $this->language->get('tab_user_permissions'),
+            'active' => ($active === 'permissions'),
+            'sort_order' => 10,
+        ];
+
+        $obj = $this->dispatch('responses/common/tabs', [
+                'user/user',
+                ['tabs' => $this->data['tabs']]
+            ]
+        );
+        $this->data['tabs'] = $obj->dispatchGetOutput();
+    }
+
+    public function permissions()
+    {
+        $userId = (int)$this->request->get['user_id'];
+
+        $user = User::find($userId);
+
+        $this->loadLanguage('user/user');
+        $this->data['heading_title'] =
+            $this->language->get('text_edit').'&nbsp;'.$this->language->get('text_user').' - '
+            .$user->username;
+
+        $this->document->initBreadcrumb([
+            'href'      => $this->html->getSecureURL('index/home'),
+            'text'      => $this->language->get('text_home'),
+            'separator' => false,
+        ]);
+        $this->document->addBreadcrumb([
+            'href'      => $this->html->getSecureURL('user/user'),
+            'text'      => $this->data['heading_title'],
+            'separator' => ' :: ',
+            'current'   => true
+        ]);
+
+
+        $this->extensions->hk_InitData($this, __FUNCTION__);
+
+        $this->userModel = User::class;
+
+
+        $this->getTabs($userId, 'permissions');
+
+        $this->data['abilities'] = $this->getAbilities();
+
+        $this->data['permissions'] = [
+            'change_permissions_url'  => $this->html->getSecureURL('r/user/user_permissions/changePermissions'),
+            'user_model'              => $this->userModel,
+            'user_id'                 => $userId,
+            'abilities_table_headers' => [
+                [
+                    'title'        => $this->language->get('title_ability'),
+                    'align'        => 'left',
+                    'sortable'     => false,
+                    'property'     => 'entity_type',
+                    'filterable'   => true,
+                ],
+                [
+                    'title'    => $this->language->get('title_read'),
+                    'align'    => 'center',
+                    'sortable' => false,
+                    'property' => 'read',
+                ],
+                [
+                    'title'    => $this->language->get('title_write'),
+                    'align'    => 'center',
+                    'sortable' => false,
+                    'property' => 'write',
+                ],
+                [
+                    'title'    => $this->language->get('title_delete'),
+                    'align'    => 'center',
+                    'sortable' => false,
+                    'property' => 'delete',
+                ],
+            ],
+            'abilities' => $this->data['abilities'],
+        ];
+
+        //Put Php array to Javascript Object - abc.roles
+        $transformer = new PHPToJavaScriptTransformer($this->document, 'abc');
+        $transformer->put(['permissions' => $this->data['permissions']]);
+
+        $this->view->batchAssign($this->data);
+        $this->processTemplate('/pages/user/user_permissions.tpl');
+        //update controller data
+        $this->extensions->hk_UpdateData($this, __FUNCTION__);
+    }
+
+    public function getAbilities()
+    {
+        $abilities = Ability::select([
+            $this->db->raw('GROUP_CONCAT('.$this->db->table_name('abilities').'.id) as grouped_id'),
+            $this->db->raw('GROUP_CONCAT('.$this->db->table_name('abilities').'.name) as name'),
+            $this->db->raw('GROUP_CONCAT('.$this->db->table_name('abilities').'.parent_id) as parent_id'),
+            $this->db->raw('GROUP_CONCAT('.$this->db->table_name('abilities').'.title) as title'),
+            $this->db->raw('GROUP_CONCAT('.$this->db->table_name('abilities').'.user_model) as user_model'),
+            'abilities.entity_type',
+        ])
+            ->whereNull('entity_id')
+            ->where('user_model', '=', $this->userModel)
+            ->groupBy('abilities.entity_type')
+            ->orderBy('id');
+
+        $abilities = $abilities->get();
+
+        if ($abilities) {
+            $abilities = $abilities->toArray();
+            $abilities = $this->prepareAbilities($abilities);
+        } else {
+            $abilities = [];
+        }
+
+        return $abilities;
+    }
+
+    private function prepareAbilities($abilities = [], $roleId = 0)
+    {
+        $result = [];
+
+        foreach ($abilities as $key => $ability) {
+            $ability['role_id'] = $roleId;
+            if ($ability['parent_id']) {
+                $parent_key = array_search($ability['parent_id'], array_column($result, 'grouped_id'), true);
+                if ($parent_key !== false) {
+                    $result[$parent_key]['_children'][] = $ability;
+                }
+            } else {
+                $result[] = $ability;
+            }
+        }
+        $userId = (int)$this->request->get['user_id'];
+
+        $permissions = $this->getPermissions($userId);
+        $result = $this->extractAbilitiesFromGroups($result, $permissions);
+
+        return $result;
+    }
+
+    private function extractAbilitiesFromGroups($abilities = [], $permissions = [])
+    {
+        foreach ($abilities as &$ability) {
+            $abilityIds = explode(',', $ability['grouped_id']);
+            foreach (explode(',', $ability['name']) as $key => $ability_name) {
+                $ability[$ability_name] = false;
+                if (isset($abilityIds[$key])) {
+                    $permissionKey = array_search($abilityIds[$key], array_column($permissions, 'ability_id'), false);
+                    if ($permissionKey !== false && $permissions[$permissionKey]['forbidden'] === 0) {
+                        $ability[$ability_name] = true;
+                    }
+                }
+            }
+            if (is_array($ability['_children'])) {
+                $ability['_children'] = $this->extractAbilitiesFromGroups($ability['_children'], $permissions);
+            }
+        }
+        return $abilities;
+    }
+
+    private function getPermissions($userId)
+    {
+        $permissions = Permission::where('permissions.entity_id', '=', $userId)
+            ->where('permissions.entity_type', '=', 'User')
+            ->get();
+        if ($permissions) {
+            return $permissions->toArray();
+        } else {
+            return [];
         }
     }
 

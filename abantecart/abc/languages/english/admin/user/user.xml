@@ -148,4 +148,32 @@
 		<key>text_change_im_addresses</key>
 		<value><![CDATA[Edit Notification Addresses for this SendPoint]]></value>
 	</definition>
+	<definition>
+		<key>tab_user_details</key>
+		<value><![CDATA[User Details]]></value>
+	</definition>
+	<definition>
+		<key>tab_user_detail</key>
+		<value><![CDATA[User Details]]></value>
+	</definition>
+	<definition>
+		<key>tab_user_permissions</key>
+		<value><![CDATA[Permissions]]></value>
+	</definition>
+	<definition>
+		<key>title_ability</key>
+		<value><![CDATA[Ability]]></value>
+	</definition>
+	<definition>
+		<key>title_read</key>
+		<value><![CDATA[Read]]></value>
+	</definition>
+	<definition>
+		<key>title_write</key>
+		<value><![CDATA[Write]]></value>
+	</definition>
+	<definition>
+		<key>title_delete</key>
+		<value><![CDATA[Delete]]></value>
+	</definition>
 </definitions>
