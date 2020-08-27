@@ -2,7 +2,7 @@
 
 use abc\core\ABC;
 
-if (!file_exists(ABC::env('DIR_PUBLIC').'vendor/components/jqGrid/js/i18n/grid.locale-'.$locale.'.js')) {
+if (!file_exists(ABC::env('DIR_PUBLIC').'vendor/components/jqgrid/js/i18n/grid.locale-'.$locale.'.js')) {
     $locale = 'en';
 }
 $this->document->addScript($this->templateResource('assets/js/jqgrid/js/i18n/grid.locale-'.$locale.'.js'));
@@ -76,11 +76,7 @@ echo $this->html->buildElement(
                 $col = ['resizable: false', 'title: false', 'searchoptions: { sopt:[\'cn\'] }'];
                 foreach ($m as $k => $v) {
                     if (is_string($v)) {
-                        if ($k == 'cellattr') {
-                            $col[] = "$k: ".$v;
-                        } else {
-                            $col[] = "$k: '".addslashes($v)."'";
-                        }
+                        $col[] = "$k: '".addslashes($v)."'";
                     } else {
                         if (is_int($v)) {
                             $col[] = "$k: ".(int)($v);

@@ -1,13 +1,14 @@
 <?php
 use abc\core\ABC;
-if (!file_exists(ABC::env('DIR_PUBLIC') . 'vendor/components/jqGrid/js/i18n/grid.locale-' . $locale . '.js')) {
+
+if (!file_exists(ABC::env('DIR_PUBLIC').'vendor/components/jqgrid/js/i18n/grid.locale-'.$locale.'.js')) {
 	$locale = 'en';
 }
 
-$this->document->addScript('vendor/components/jqGrid/js/i18n/grid.locale-' . $locale . '.js');
-$jss = glob(ABC::env('DIR_PUBLIC') . 'vendor/components/jqGrid/js/minified/*.js');
+$this->document->addScript('vendor/components/jqgrid/js/i18n/grid.locale-'.$locale.'.js');
+$jss = glob(ABC::env('DIR_PUBLIC').'vendor/components/jqgrid/js/minified/*.js');
 foreach($jss as $js){
-	$this->document->addScript('vendor/components/jqGrid/js/minified/'.basename($js));
+    $this->document->addScript('vendor/components/jqgrid/js/minified/'.basename($js));
 }
 
 ?>
@@ -51,7 +52,7 @@ foreach($jss as $js){
 	);
 ?>
 
-<script type="text/javascript" src="vendor/components/jqGrid/plugins/jquery.tablednd.js"></script>
+<script type="text/javascript" src="vendor/components/jqgrid/plugins/jquery.tablednd.js"></script>
 <script type="text/javascript">
 
 var initGrid_<?php echo $data['table_id'] ?> = function ($) {
@@ -73,11 +74,7 @@ var initGrid_<?php echo $data['table_id'] ?> = function ($) {
 		$col = array('resizable: false', 'title: false', 'searchoptions: { sopt:[\'cn\'] }');
 		foreach ($m as $k => $v) {
 			if (is_string($v)) {
-                if ($k == 'cellattr') {
-                    $col[] = "$k: ".$v;
-                } else {
-                    $col[] = "$k: '".addslashes($v)."'";
-                }
+				$col[] = "$k: '" . addslashes($v) . "'";
 			} else if (is_int($v)) {
 				$col[] = "$k: " . (int)($v);
 			} else if (is_bool($v)) {

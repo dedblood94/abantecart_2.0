@@ -27,8 +27,7 @@ class ZoneDescription extends BaseModel
         'language_id',
     ];
 
-    public $timestamps = false;
-
+    protected $touches = ['zone'];
     protected $casts = [
         'zone_id'     => 'int',
         'language_id' => 'int',
@@ -37,7 +36,22 @@ class ZoneDescription extends BaseModel
     protected $fillable = [
         'name',
     ];
-
+    protected $rules=[
+        'name'=>[
+            'checks'=>[
+                'string',
+                'between:2,128',
+                'required',
+                'sometimes'
+            ],
+            'messages'=>[
+                'language_key'=> 'error_name',
+                'language_block'=>'localisation/zone',
+                'default_text'=>'Name must be between 2 and 128 characters!',
+                'section'=>'admin'
+            ]
+        ]
+    ];
     public function zone()
     {
         return $this->belongsTo(Zone::class, 'zone_id');

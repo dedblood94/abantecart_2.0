@@ -58,7 +58,7 @@ class AConfigManager
     public function __construct()
     {
         if (!ABC::env('IS_ADMIN')) { // forbid for non admin calls
-            throw new AException (AC_ERR_LOAD, 'Error: permission denied to access class AConfigManager');
+            throw new AException ('Error: permission denied to access class AConfigManager', AC_ERR_LOAD);
         }
         $this->registry = Registry::getInstance();
         $this->load->model('setting/extension');
@@ -131,7 +131,9 @@ class AConfigManager
      * @param int $store_id
      *
      * @return array|bool
-     * @throws \Exception
+     * @throws AException
+     * @throws \Psr\SimpleCache\InvalidArgumentException
+     * @throws \ReflectionException
      */
     public function validate($group, $fields = [], $store_id = 0)
     {
@@ -296,12 +298,13 @@ class AConfigManager
     }
 
     /**
-     * @var \abc\core\engine\AForm $form
      *
+     * @param AForm $form
      * @param array $data
      *
      * @return array
      * @throws AException
+     * @throws \Psr\SimpleCache\InvalidArgumentException
      */
     protected function buildFormDetails($form, $data)
     {
@@ -545,12 +548,13 @@ class AConfigManager
     }
 
     /**
-     * @var \abc\core\engine\AForm $form
      *
+     * @param AForm $form
      * @param array $data
      *
      * @return array
      * @throws AException
+     * @throws \Psr\SimpleCache\InvalidArgumentException
      * @throws \ReflectionException
      */
     protected function buildFormGeneral($form, $data)
@@ -732,6 +736,7 @@ class AConfigManager
      * @return array
      *
      * @throws AException
+     * @throws \Psr\SimpleCache\InvalidArgumentException
      * @throws \ReflectionException
      */
     protected function buildFormCheckout($form, $data)
@@ -1288,12 +1293,13 @@ class AConfigManager
     }
 
     /**
-     * @var AForm $form
      *
+     * @param AForm $form
      * @param array $data
      *
      * @return array
      * @throws AException
+     * @throws \Psr\SimpleCache\InvalidArgumentException
      * @throws \ReflectionException
      */
     protected function buildFormMail($form, $data)
@@ -1381,12 +1387,13 @@ class AConfigManager
     }
 
     /**
-     * @var AForm $form
      *
+     * @param AForm $form
      * @param array $data
      *
      * @return array
      * @throws AException
+     * @throws \Psr\SimpleCache\InvalidArgumentException
      * @throws \ReflectionException
      */
     protected function buildFormIm($form, $data)
@@ -1505,12 +1512,13 @@ class AConfigManager
     // validate form fields
 
     /**
-     * @var AForm $form
      *
+     * @param AForm $form
      * @param array $data
      *
      * @return array
      * @throws AException
+     * @throws \Psr\SimpleCache\InvalidArgumentException
      * @throws \ReflectionException
      */
     protected function buildFormSystem($form, $data)
@@ -1578,14 +1586,14 @@ class AConfigManager
             'value' => $data['config_compression'],
         ]);
 
-        $all_cache_drivers = $this->registry->get('cache')->getCacheStorageDrivers();
+        $all_cache_drivers = Registry::cache()->getAvailableStores();
         $cache_drivers = [];
         foreach ($all_cache_drivers as $drv) {
             $name = strtoupper($drv['driver_name']);
             $cache_drivers[$name] = $name;
         }
         sort($cache_drivers, SORT_STRING);
-        $current_cache_driver = strtoupper(ABC::env('CACHE')['CACHE_DRIVER'] ?? 'file');
+        $current_cache_driver = strtoupper(Registry::cache()->getCurrentStore());
         unset($cache_drivers[$current_cache_driver]);
 
         $fields['cache_enable'] = $form->getFieldHtml($props[] = [

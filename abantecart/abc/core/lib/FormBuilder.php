@@ -129,6 +129,7 @@ class FormBuilder
 
                     $type = $availibleFieldTypes[$global_attribute['element_type']]['type'];
 
+                    //H::df($attribute_group->toArray());
                     $description = $global_attribute['description'];
 
                     $fieldOptions = [
@@ -141,6 +142,8 @@ class FormBuilder
                         'required'    => $global_attribute['required'],
                     ];
 
+                    //H::df($fieldOptions);
+                    //H::df($global_attribute->element_type);
 
                     if (in_array($global_attribute['element_type'], $elementsWithOptions)) {
 
