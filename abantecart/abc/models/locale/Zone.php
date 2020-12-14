@@ -40,7 +40,7 @@ class Zone extends BaseModel
 
     protected $casts = [
         'country_id' => 'int',
-        'status'     => 'int',
+        'status' => 'int',
         'sort_order' => 'int',
     ];
 
@@ -48,6 +48,90 @@ class Zone extends BaseModel
         'code',
         'status',
         'sort_order',
+        'zone_id'
+    ];
+    protected $rules = [
+        'zone_id' => [
+            'checks' => [
+                'integer',
+                'required',
+                'sometimes',
+                'min:1'
+            ],
+            'messages' => [
+                'integer' => [
+                    'language_key' => 'error_zone_id',
+                    'language_block' => 'localisation/zone',
+                    'default_text' => 'Zone id must be integer!',
+                    'section' => 'admin'
+                ],
+                'required' => [
+                    'language_key' => 'error_zone_id',
+                    'language_block' => 'localisation/zone',
+                    'default_text' => 'Zone id required!',
+                    'section' => 'admin'
+                ],
+                'min' => [
+                    'language_key' => 'error_zone_id',
+                    'language_block' => 'localisation/zone',
+                    'default_text' => 'Zone id must be more 1!',
+                    'section' => 'admin'
+                ],
+            ]
+        ],
+        'code' => [
+            'checks' => [
+                'string',
+                'min:2',
+                'max:32'
+            ],
+            'messages' => [
+                'min' => [
+                    'language_key' => 'error_code',
+                    'language_block' => 'localisation/zone',
+                    'default_text' => 'Code must be more 2 characters',
+                    'section' => 'admin'
+                ],
+                'max' => [
+                    'language_key' => 'error_code',
+                    'language_block' => 'localisation/zone',
+                    'default_text' => 'Code must be no more than 32 characters',
+                    'section' => 'admin'
+                ],
+                'string' => [
+                    'language_key' => 'error_code',
+                    'language_block' => 'localisation/zone',
+                    'default_text' => 'Code must be string!',
+                    'section' => 'admin'
+                ],
+            ]
+        ],
+        'status' => [
+            'checks' => [
+                'integer'
+            ],
+            'messages' => [
+                'integer' => [
+                    'language_key' => 'error_status',
+                    'language_block' => 'localisation/zone',
+                    'default_text' => 'status must be integer!',
+                    'section' => 'admin'
+                ],
+            ]
+        ],
+        'sort_order' => [
+            'checks' => [
+                'integer'
+            ],
+            'messages' => [
+                'integer' => [
+                    'language_key' => 'error_sort_order',
+                    'language_block' => 'localisation/zone',
+                    'default_text' => 'sort order must be integer!',
+                    'section' => 'admin'
+                ],
+            ]
+        ]
     ];
 
     public function country()
@@ -68,7 +152,7 @@ class Zone extends BaseModel
     public function description()
     {
         return $this->hasOne(ZoneDescription::class, 'country_id')
-                    ->where('language_id', '=', static::$current_language_id);
+            ->where('language_id', '=', static::$current_language_id);
     }
 
     public function descriptions()

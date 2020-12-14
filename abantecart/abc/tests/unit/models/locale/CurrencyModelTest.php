@@ -20,14 +20,61 @@ namespace unit\models\locale;
 
 use abc\models\locale\Currency;
 use abc\tests\unit\ATestCase;
+use Illuminate\Validation\ValidationException;
 
 class CurrencyModelTest extends ATestCase
 {
 
-    protected function setUp()
+    public function testValidator()
     {
-        //init
+
+        $currency = new Currency(
+            [
+                'currency_id' => 0,
+                'title' => '',
+                'code' => 111,
+                'symbol_left' => 111111111,
+                'symbol_right' => 111111111,
+                'decimal_place' => 66666666666666666,
+                'value' => 200,
+                9,
+                'status' => 'adhefhgesrhgsedfghaerfg'
+            ]
+        );
+        $errors = [];
+        try {
+            $currency->validate();
+        } catch (ValidationException $e) {
+            $errors = $currency->errors()['validation'];
+        }
+
+        //var_dump($errors);die;
+        $this->assertEquals(7, count($errors));
+
+
+        $currency = new Currency(
+            [
+                'currency_id' => 2,
+                'title' => 'dfyh',
+                'code' => '123',
+                'symbol_left' => 'somestring',
+                'symbol_right' => 'somestring',
+                'decimal_place' => '$',
+                'value' => 15.4,
+                'status' => 1
+            ]
+        );
+        $errors = [];
+        try {
+            $currency->validate();
+        } catch (ValidationException $e) {
+            $errors = $currency->errors()['validation'];
+        }
+
+        $this->assertEquals(0, count($errors));
+
     }
+
 
     /**
      * @return int
@@ -36,13 +83,13 @@ class CurrencyModelTest extends ATestCase
     public function testCreateCurrency()
     {
         $currency = new Currency([
-            'title'         => 'Test currency',
-            'code'          => 'TCC',
-            'symbol_left'   => 'L',
-            'symbol_right'  => '',
+            'title' => 'Test currency',
+            'code' => 'TCC',
+            'symbol_left' => 'L',
+            'symbol_right' => '',
             'decimal_place' => '2',
-            'value'         => '50',
-            'status'        => 1,
+            'value' => '50',
+            'status' => 1,
         ]);
         $currency->save();
         $createdId = $currency->currency_id;
@@ -70,7 +117,7 @@ class CurrencyModelTest extends ATestCase
     public function testUpdateCurrency(int $createdId)
     {
         Currency::find($createdId)->update([
-            'code'  => 'TCU',
+            'code' => 'TCU',
         ]);
         $result = Currency::find($createdId);
         $this->assertEquals('TCU', $result->code);
